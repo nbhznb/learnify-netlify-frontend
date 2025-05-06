@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
@@ -9,7 +9,26 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Grid from '@mui/material/Grid';
 import { useAuth } from '../hooks/useAuth';
 
-const Login = ({ onClose, onRegisterClick }) => {
+// Extract styles as constants to prevent recreation on each render
+const containerStyle = {
+  p: 3,
+  bgcolor: 'background.paper',
+  borderRadius: 2,
+  width: '400px',
+  position: 'relative',
+  // Avoid transition: all
+  transition: 'opacity 0.2s ease-out',
+  // Add GPU acceleration
+  WebkitBackfaceVisibility: 'hidden',
+  backfaceVisibility: 'hidden',
+};
+
+const titleStyle = { mb: 2 };
+const errorStyle = { mt: 1, textAlign: 'center' };
+const primaryButtonStyle = { mt: 2 };
+const secondaryButtonStyle = { mt: 1 };
+
+const Login = memo(({ onClose, onRegisterClick }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -17,7 +36,8 @@ const Login = ({ onClose, onRegisterClick }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { loginUser } = useAuth();
 
-  const handleLogin = async () => {
+  // Use useCallback to memoize handlers
+  const handleLogin = useCallback(async () => {
     // Reset error state
     setError('');
 
@@ -42,23 +62,21 @@ const Login = ({ onClose, onRegisterClick }) => {
       setError('An unexpected error occurred. Please try again.');
       setIsLoading(false);
     }
-  };
+  }, [username, password, loginUser, onClose]);
 
-  const handleKeyPress = (event) => {
+  const handleKeyPress = useCallback((event) => {
     if (event.key === 'Enter') {
       handleLogin();
     }
-  };
+  }, [handleLogin]);
+
+  const handleUsernameChange = useCallback((e) => setUsername(e.target.value), []);
+  const handlePasswordChange = useCallback((e) => setPassword(e.target.value), []);
+  const handleShowPasswordChange = useCallback((e) => setShowPassword(e.target.checked), []);
 
   return (
-    <Box sx={{
-      p: 3,
-      bgcolor: 'background.paper',
-      borderRadius: 2,
-      width: '400px',
-      position: 'relative'
-    }}>
-      <Typography variant="h5" gutterBottom sx={{ mb: 2 }}>
+    <Box sx={containerStyle}>
+      <Typography variant="h5" gutterBottom sx={titleStyle}>
         Login
       </Typography>
 
@@ -67,7 +85,7 @@ const Login = ({ onClose, onRegisterClick }) => {
         fullWidth
         margin="normal"
         value={username}
-        onChange={(e) => setUsername(e.target.value)}
+        onChange={handleUsernameChange}
         onKeyPress={handleKeyPress}
         disabled={isLoading}
         autoFocus
@@ -80,7 +98,7 @@ const Login = ({ onClose, onRegisterClick }) => {
         margin="normal"
         type={showPassword ? 'text' : 'password'}
         value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        onChange={handlePasswordChange}
         onKeyPress={handleKeyPress}
         disabled={isLoading}
         autoComplete="current-password"
@@ -90,7 +108,7 @@ const Login = ({ onClose, onRegisterClick }) => {
         control={
           <Checkbox
             checked={showPassword}
-            onChange={(e) => setShowPassword(e.target.checked)}
+            onChange={handleShowPasswordChange}
             disabled={isLoading}
           />
         }
@@ -100,7 +118,7 @@ const Login = ({ onClose, onRegisterClick }) => {
       {error && (
         <Typography
           color="error"
-          sx={{ mt: 1, textAlign: 'center' }}
+          sx={errorStyle}
         >
           {error}
         </Typography>
@@ -110,7 +128,7 @@ const Login = ({ onClose, onRegisterClick }) => {
         variant="contained"
         fullWidth
         onClick={handleLogin}
-        sx={{ mt: 2 }}
+        sx={primaryButtonStyle}
         disabled={isLoading}
       >
         {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Login'}
@@ -119,13 +137,13 @@ const Login = ({ onClose, onRegisterClick }) => {
       <Button
         fullWidth
         onClick={onRegisterClick}
-        sx={{ mt: 1 }}
+        sx={secondaryButtonStyle}
         disabled={isLoading}
       >
         Register
       </Button>
     </Box>
   );
-};
+});
 
 export default Login;

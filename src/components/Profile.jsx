@@ -63,7 +63,7 @@ const Profile = ({ onClose }) => {
     if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
       try {
         setIsLoading(true);
-        const response = await fetch(`${APIURL}/auth/user/profile`, {
+        const response = await fetch(`${APIURL}/user/profile`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${user.token}`

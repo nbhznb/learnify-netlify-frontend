@@ -21,58 +21,58 @@ const Register = ({ onClose, onLoginClick }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { loginUser } = useAuth();
 
-  // Log the API URL for debugging
-  console.log('APIURL:', APIURL);
-  console.log('Environment variables:', import.meta.env.VITE_API_URL, import.meta.env.VITE_BACKEND_URL);
-
   const handleRegister = async () => {
-    // Reset error state
+    // Reset any previous errors
     setError('');
 
     // Validate inputs
-    if (!email.trim() || !username.trim() || !password || (!showPassword && !confirmPassword)) {
-      setError('Please fill in all fields');
+    if (!email || !username || !password) {
+      setError('Please fill in all required fields');
       return;
     }
 
-    if (password !== confirmPassword && !showPassword) {
+    if (!showPassword && password !== confirmPassword) {
       setError('Passwords do not match');
+      return;
+    }
+
+    // Basic email validation
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setError('Please enter a valid email address');
       return;
     }
 
     try {
       setIsLoading(true);
-      console.log('Making API request to:', `${APIURL}/auth/user/register`);
       const response = await fetch(`${APIURL}/auth/user/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: email.trim(),
-          username: username.trim(),
-          password
-        })
+        body: JSON.stringify({ email, username, password })
       });
 
       const data = await response.json();
-      console.log('API response:', data);
 
       if (response.ok) {
         // Auto-login after successful registration
-        await loginUser(username.trim(), password);
-        onClose();
+        const loginResult = await loginUser(username, password);
+        if (loginResult.success) {
+          onClose();
+        } else {
+          // Registration succeeded but login failed
+          setError('Account created. Please try logging in.');
+        }
       } else {
-        setError(data.error || 'Registration failed');
+        setError(data.error || 'Registration failed. Please try again.');
       }
     } catch (err) {
-      console.error('Registration error:', err);
       setError('An unexpected error occurred');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleKeyPress = (event) => {
-    if (event.key === 'Enter') {
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
       handleRegister();
     }
   };
@@ -134,7 +134,7 @@ const Register = ({ onClose, onLoginClick }) => {
       )}
       <FormControlLabel
         control={
-          <Checkbox
+          <Checkbox 
             checked={showPassword}
             onChange={(e) => setShowPassword(e.target.checked)}
             disabled={isLoading}
@@ -163,7 +163,7 @@ const Register = ({ onClose, onLoginClick }) => {
         sx={{ mt: 1 }}
         disabled={isLoading}
       >
-        Back to Login
+        Already have an account? Login
       </Button>
     </Box>
   );

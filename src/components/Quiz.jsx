@@ -306,183 +306,21 @@ const Quiz = () => {
         proceedToNextQuestion(isCorrect);
       }, 2000);
     } else {
-      // For NVR and Spatial categories, show answer numbers instead of file paths
-      if (category === 'NVR' || category === 'Spatial') {
-        // Find the correct answer's position in the shuffled answers array
-        const correctAnswerIndex = shuffledAnswers.findIndex(answer => answer === currentQ.correctAnswer);
-        // Display answer numbers (1-indexed) instead of file paths
-        setResult(`Incorrect. You chose answer ${selectedIndex}, but the correct answer is ${correctAnswerIndex + 1}`);
-      } else {
-        setResult(`Incorrect. You chose "${selectedAnswer}", but the correct answer is "${currentQ.correctAnswer}"`);
-      }
+      setResult(`Incorrect. You chose "${selectedAnswer}", but the correct answer is "${currentQ.correctAnswer}"`);
       setShowExplanation(true);
     }
-  }, [currentQ, proceedToNextQuestion, category, shuffledAnswers]);
+  }, [currentQ, proceedToNextQuestion]);
 
   const handleEssay = useCallback(async () => {
     setDisabled(true);
 
-    const essayText = document.getElementById('essay').value.trim();
-    
-    // Get essay criteria based on the current question
-    const essayCriteria = getEssayCriteria(currentQ);
-    
-    // Grade the essay based on the criteria
-    const { score, feedback } = gradeEssay(essayText, essayCriteria);
-    
-    // Set result message based on score
-    if (score >= 70) {
-      setResult(`Excellent! ${feedback}`);
-      setTimeout(() => {
-        proceedToNextQuestion(true);
-      }, 3000);
-    } else if (score >= 50) {
-      setResult(`Good effort. ${feedback}`);
-      setTimeout(() => {
-        proceedToNextQuestion(true);
-      }, 3000);
-    } else {
-      setResult(`Needs improvement. ${feedback}`);
-      setTimeout(() => {
-        proceedToNextQuestion(false);
-      }, 3000);
-    }
-    
+    // Automatically mark as correct if the question is of type essay
+    setResult('Correct!');
+    setTimeout(() => {
+      proceedToNextQuestion(true);
+    }, 2000);
     document.getElementById('essay').value = '';
-  }, [proceedToNextQuestion, currentQ]);
-
-  // Function to determine essay grading criteria based on the question type
-  const getEssayCriteria = (question) => {
-    // Default criteria
-    const defaultCriteria = {
-      minWordCount: 100,
-      maxWordCount: 400,
-      requiresParagraphs: true,
-      requiresPunctuation: true,
-      topicKeywords: [],
-      type: 'general'
-    };
-    
-    // If no question or no text, return default criteria
-    if (!question || !question.text) return defaultCriteria;
-    
-    // Extract keywords from the question text
-    const questionLower = question.text.toLowerCase();
-    const topicKeywords = [];
-    
-    // Extract topic-specific criteria based on question content
-    if (questionLower.includes('describe')) {
-      defaultCriteria.type = 'descriptive';
-      topicKeywords.push('describe', 'detail', 'appearance', 'setting');
-    } else if (questionLower.includes('persuade') || questionLower.includes('convince')) {
-      defaultCriteria.type = 'persuasive';
-      topicKeywords.push('argument', 'opinion', 'convince', 'reason');
-    } else if (questionLower.includes('explain') || questionLower.includes('why')) {
-      defaultCriteria.type = 'explanatory';
-      topicKeywords.push('explain', 'reason', 'because', 'therefore');
-    } else if (questionLower.includes('story') || questionLower.includes('adventure')) {
-      defaultCriteria.type = 'narrative';
-      topicKeywords.push('character', 'setting', 'plot', 'event');
-    }
-    
-    // Add specific topical keywords from the question
-    const contentWords = questionLower.split(/\s+/).filter(word => 
-      word.length > 4 && 
-      !['describe', 'write', 'about', 'would', 'could', 'should', 'think'].includes(word)
-    );
-    topicKeywords.push(...contentWords);
-    
-    defaultCriteria.topicKeywords = [...new Set(topicKeywords)]; // Remove duplicates
-    
-    return defaultCriteria;
-  };
-
-  // Function to grade essays based on 11+ criteria
-  const gradeEssay = (text, criteria) => {
-    // Initialize score
-    let score = 0;
-    let feedback = '';
-    
-    // Check word count (15 points)
-    const wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
-    if (wordCount >= criteria.minWordCount && wordCount <= criteria.maxWordCount) {
-      score += 15;
-    } else if (wordCount < criteria.minWordCount) {
-      feedback += `Your essay is too short (${wordCount} words). Aim for at least ${criteria.minWordCount} words. `;
-    } else {
-      feedback += `Your essay is too long (${wordCount} words). Try to keep it under ${criteria.maxWordCount} words. `;
-    }
-    
-    // Check paragraph structure (15 points)
-    const paragraphs = text.split(/\n\s*\n/);
-    if (paragraphs.length >= 3) {
-      score += 15;
-    } else {
-      feedback += 'Remember to structure your essay with clear paragraphs (introduction, body, conclusion). ';
-    }
-    
-    // Check punctuation and grammar (20 points)
-    const sentenceCount = text.split(/[.!?]+/).filter(sentence => sentence.trim().length > 0).length;
-    const punctuationMarks = text.match(/[.,;:!?]/g) || [];
-    
-    // Adequate punctuation check
-    if (punctuationMarks.length >= wordCount / 10) {
-      score += 10;
-    } else {
-      feedback += 'Use more varied punctuation to enhance your writing. ';
-    }
-    
-    // Sentence structure check
-    if (sentenceCount >= 5 && wordCount / sentenceCount <= 20) {
-      score += 10;
-    } else if (wordCount / sentenceCount > 20) {
-      feedback += 'Your sentences are very long. Try using a mix of short and long sentences. ';
-    }
-    
-    // Vocabulary and language (20 points)
-    // Check for varied vocabulary by counting unique words
-    const words = text.toLowerCase().split(/\s+/).filter(word => word.length > 0);
-    const uniqueWords = new Set(words);
-    const vocabularyScore = Math.min(20, Math.floor(20 * (uniqueWords.size / words.length) * 2));
-    score += vocabularyScore;
-    
-    // Topic relevance (30 points)
-    let topicScore = 0;
-    if (criteria.topicKeywords.length > 0) {
-      const lowerText = text.toLowerCase();
-      const matchedKeywords = criteria.topicKeywords.filter(keyword => 
-        lowerText.includes(keyword)
-      );
-      
-      topicScore = Math.min(30, Math.floor(30 * (matchedKeywords.length / criteria.topicKeywords.length) * 1.5));
-    } else {
-      // If no keywords are defined, give a default score
-      topicScore = 15;
-    }
-    score += topicScore;
-    
-    // Generate additional feedback based on the essay type
-    if (score < 70) {
-      switch(criteria.type) {
-        case 'descriptive':
-          feedback += 'Try to include more sensory details (what you can see, hear, smell, touch, and taste). ';
-          break;
-        case 'persuasive':
-          feedback += 'Make sure to include clear arguments and supporting evidence for your opinion. ';
-          break;
-        case 'explanatory':
-          feedback += 'Ensure you provide clear explanations with logical connections between your points. ';
-          break;
-        case 'narrative':
-          feedback += 'Focus on developing characters, setting, and a clear plot structure with a beginning, middle, and end. ';
-          break;
-        default:
-          feedback += 'Make sure your essay stays focused on the main topic. ';
-      }
-    }
-    
-    return { score, feedback: feedback || 'Good job!' };
-  };
+  }, [proceedToNextQuestion]);
 
   // Early return conditions
   if (isLoading) {
@@ -741,7 +579,6 @@ const Quiz = () => {
             <Grid item xs={12}>
               <input
                 type="text"
-                id="text-answer"
                 placeholder="Enter your answer"
                 onKeyPress={(e) => {
                   if (e.key === 'Enter') {
@@ -757,29 +594,6 @@ const Quiz = () => {
                   border: '1px solid #ccc',
                 }}
               />
-              <Button
-                variant="contained"
-                onClick={() => handleAnswer(document.getElementById('text-answer').value)}
-                disabled={disabled}
-                sx={{
-                  background: "linear-gradient(135deg, #4CAF50 30%, #458B00 90%)",
-                  color: "#fff",
-                  padding: "12px 24px",
-                  fontSize: "16px",
-                  borderRadius: "30px",
-                  fontWeight: "600",
-                  textTransform: "none",
-                  boxShadow: "0px 4px 10px rgba(76, 175, 80, 0.4)",
-                  transition: "all 0.3s ease-in-out",
-                  "&:hover": {
-                    background: "linear-gradient(135deg, #458B00 30%, #4CAF50 90%)",
-                    boxShadow: "0px 6px 12px rgba(76, 175, 80, 0.5)",
-                  },
-                  mt: 2,
-                }}
-              >
-                Submit
-              </Button>
             </Grid>
           )}
         </Grid>

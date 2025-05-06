@@ -18,12 +18,10 @@ This project is built using:
 
 ### Prerequisites
 Ensure you have the following installed:
-- [Node.js](https://nodejs.org/) (v18+ recommended)
+- [Node.js](https://nodejs.org/) (Latest LTS recommended)
 - [npm](https://www.npmjs.com/) (Comes with Node.js)
 
 ### Installation and Setup
-
-#### Local Development
 
 1. **Clone the Repository**
    ```sh
@@ -36,50 +34,11 @@ Ensure you have the following installed:
    npm install
    ```
 
-3. **Set Environment Variables**
-   Create a `.env` file in the frontend directory with the following variables:
-   ```
-   VITE_API_URL=https://learnify-render-backend.onrender.com/api
-   VITE_BACKEND_URL=https://learnify-render-backend.onrender.com
-   ```
-
-4. **Run the Development Server**
+3. **Run the Development Server**
    ```sh
    npm run dev
    ```
    The app should now be accessible at `http://localhost:5173/` (or the port specified by Vite).
-
-#### Docker Development
-
-The recommended way to run the frontend is using Docker, as described in the main README.md file. This ensures consistent environments across development and production.
-
-```sh
-# From the project root directory
-docker-compose up -d frontend
-```
-
-### Deployment
-
-#### Netlify Deployment
-
-The frontend is configured for easy deployment to Netlify:
-
-1. **Push your code to a Git repository** (GitHub, GitLab, or Bitbucket)
-
-2. **Sign up for Netlify** at [netlify.com](https://www.netlify.com/) and connect your Git provider
-
-3. **Create a new site** from your Git repository:
-   - Select your repository
-   - Configure build settings:
-     - Build command: `npm run build`
-     - Publish directory: `dist`
-   - Advanced settings are already configured in the `netlify.toml` file
-
-4. **Deploy the site**
-   - Netlify will automatically deploy your site
-   - Any future pushes to your main branch will trigger a new deployment
-
-The backend API connection is pre-configured in the `netlify.toml` file to use the Render.com hosted backend.
 
 ### Additional Commands
 
@@ -107,9 +66,9 @@ The backend API connection is pre-configured in the `netlify.toml` file to use t
 ## Project Structure
 
 ```
-frontend/
- ┣ node_modules/
- ┣ public/
+learnify
+ ┣ node_modules
+ ┣ public
  ┃ ┣ Bolt.jpg
  ┃ ┣ Flash.jpg
  ┃ ┣ Janenglish.jpg
@@ -120,20 +79,18 @@ frontend/
  ┃ ┣ Rubik.jpg
  ┃ ┣ Sparta.jpg
  ┃ ┗ logo.svg
- ┣ src/
- ┃ ┣ assets/
- ┃ ┣ components/
+ ┣ src
+ ┃ ┣ assets
+ ┃ ┣ components
  ┃ ┃ ┣ Chart.jsx
  ┃ ┃ ┣ Footer.jsx
  ┃ ┃ ┣ HomePage.jsx
  ┃ ┃ ┣ Navbar.jsx
  ┃ ┃ ┣ ProtectedRoute.jsx
  ┃ ┃ ┣ QuizStyle.jsx
- ┃ ┃ ┣ Register.jsx
- ┃ ┃ ┣ Login.jsx
  ┃ ┃ ┗ theme.js
- ┃ ┣ store/
- ┃ ┃ ┣ actions/
+ ┃ ┣ store
+ ┃ ┃ ┣ actions
  ┃ ┃ ┃ ┗ quizActions.js
  ┃ ┃ ┣ index.js
  ┃ ┃ ┗ quizReducer.js
@@ -150,112 +107,12 @@ frontend/
  ┃ ┣ backgroundPatterns.js
  ┃ ┗ main.jsx
  ┣ .gitignore
- ┣ Dockerfile
  ┣ README.md
  ┣ eslint.config.js
  ┣ index.html
  ┣ package-lock.json
  ┣ package.json
  ┗ vite.config.js
-```
-
-## Key Features
-
-- **User Authentication**: Register, login, and profile management
-- **Quiz Selection**: Choose from various subjects and difficulty levels
-- **Interactive Quizzes**: Engaging quiz interface with immediate feedback
-- **Results Analysis**: Detailed breakdown of quiz performance
-- **Responsive Design**: Works on desktop, tablet, and mobile devices
-
-## API Integration
-
-The frontend communicates with the backend API using fetch requests. The base URL for API requests is configured through environment variables:
-
-```javascript
-// Example API call from quizActions.js
-const APIURL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-
-export const fetchQuestions = (category, limit = 10) => async (dispatch) => {
-  dispatch(setLoading(true));
-  try {
-    const url = category === 'all' 
-      ? `${APIURL}/questions?limit=${limit}` 
-      : `${APIURL}/${category}?limit=${limit}`;
-    
-    const response = await fetch(url);
-    const data = await response.json();
-    
-    dispatch(setQuestions(data));
-  } catch (error) {
-    dispatch(setError(error.message));
-  } finally {
-    dispatch(setLoading(false));
-  }
-};
-```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **API Connection Errors**
-   - Error: "Failed to fetch" or "Network Error" in browser console
-   - Solution: Ensure the backend is running and the environment variables are correctly set
-   
-   ```sh
-   # Check if backend is running
-   curl http://localhost:5000/api/health
-   
-   # Verify environment variables in the browser console
-   console.log(import.meta.env.VITE_API_URL)
-   ```
-
-2. **Build Errors**
-   - Error: "Module not found" or "Syntax error"
-   - Solution: Check for missing dependencies or syntax errors in your code
-   
-   ```sh
-   # Install missing dependencies
-   npm install
-   
-   # Check for linting errors
-   npm run lint
-   ```
-
-3. **Docker-related Issues**
-   - Error: "Cannot connect to the Docker daemon"
-   - Solution: Ensure Docker is running
-   
-   ```sh
-   # Check Docker status
-   docker info
-   
-   # Restart Docker service if needed
-   sudo systemctl restart docker  # Linux
-   # Or restart Docker Desktop on Windows/macOS
-   ```
-
-## Docker Configuration
-
-The frontend is containerized using Docker. The Dockerfile is configured to:
-
-1. Use Node.js 18 Alpine as the base image
-2. Install dependencies
-3. Build the application
-4. Serve the built files using a lightweight server
-
-Environment variables are passed to the container through the docker-compose.yml file:
-
-```yaml
-frontend:
-  build: ./frontend
-  ports:
-    - "5173:5173"
-  environment:
-    - VITE_API_URL=http://localhost:5000/api
-    - VITE_BACKEND_URL=http://localhost:5000
-  depends_on:
-    - web
 ```
 
 ## Contributing

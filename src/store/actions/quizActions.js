@@ -40,9 +40,9 @@ export const setQuizStyle = (style) => ({
   payload: style
 });
 
-// Use environment variables for API URLs with fallback to Render URL
-export const backendURL = import.meta.env.VITE_BACKEND_URL || "https://learnify-render-backend.onrender.com";
-export const APIURL = import.meta.env.VITE_API_URL || "https://learnify-render-backend.onrender.com/api";
+export const backendURL = "https://learnify-render-backend.onrender.com";
+export const APIURL = "https://learnify-render-backend.onrender.com/api";
+
 
 // Thunk action creator for fetching questions
 export const fetchQuestions = (category, limit = 10) => async (dispatch) => {

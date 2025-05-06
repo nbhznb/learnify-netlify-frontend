@@ -1,5 +1,5 @@
 // src/components/HomePage.jsx
-import React from 'react';
+import React, { memo, useCallback } from 'react';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
@@ -19,11 +19,83 @@ const sections = [
   { title: "Spatial", color: "rgba(128, 0, 128, 0.8)", image: "/Rubik.jpg" },
 ];
 
-const HomePage = ({
+// Extract styles as constants
+const containerStyle = {
+  minHeight: "100vh",
+  width: "100vw",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  flexDirection: "column",
+  paddingTop: "64px",
+  position: "relative",
+  zIndex: 1,
+};
+
+const backgroundStyle = (theme) => ({
+  position: "absolute",
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  background: theme.palette.mode === "dark" ? darkPattern.backgroundImage : lightPattern.backgroundImage,
+  backgroundColor: theme.palette.mode === "dark" ? darkPattern.backgroundColor : lightPattern.backgroundColor,
+  backgroundSize: "20px 20px",
+  opacity: theme.palette.mode === "dark" ? darkPattern.opacity : lightPattern.opacity,
+  zIndex: -1,
+});
+
+const gridContainerStyle = {
+  maxWidth: "1500px",
+  padding: 2,
+};
+
+const headerStyle = {
+  textAlign: "center",
+  mb: 4,
+};
+
+const loginButtonStyle = {
+  background: "linear-gradient(135deg, #2563EB 30%, #1D4ED8 90%)",
+  color: "#fff",
+  padding: "12px 24px",
+  fontSize: "16px",
+  borderRadius: "30px",
+  fontWeight: "600",
+  textTransform: "none",
+  boxShadow: "0px 4px 10px rgba(37, 99, 235, 0.4)",
+  transition: "background 0.3s ease-in-out, transform 0.2s ease-in-out", // Specific transitions
+  "&:hover": {
+    background: "linear-gradient(135deg, #1D4ED8 30%, #2563EB 90%)",
+    boxShadow: "0px 6px 12px rgba(37, 99, 235, 0.5)",
+    transform: "translateY(-2px)",
+  },
+  mx: 1,
+};
+
+const registerButtonStyle = {
+  background: "linear-gradient(135deg, #F97316 30%, #EA580C 90%)",
+  color: "#fff",
+  padding: "12px 24px",
+  fontSize: "16px",
+  borderRadius: "30px",
+  fontWeight: "600",
+  textTransform: "none",
+  boxShadow: "0px 4px 10px rgba(249, 115, 22, 0.4)",
+  transition: "background 0.3s ease-in-out, transform 0.2s ease-in-out", // Specific transitions
+  "&:hover": {
+    background: "linear-gradient(135deg, #EA580C 30%, #F97316 90%)",
+    boxShadow: "0px 6px 12px rgba(249, 115, 22, 0.5)",
+    transform: "translateY(-2px)",
+  },
+  mx: 1,
+};
+
+const HomePage = memo(({
   openLogin,
   setOpenLogin,
   openRegister,
-  setOpenRegister, // Added this prop
+  setOpenRegister,
   openProfile,
   setOpenProfile
 }) => {
@@ -31,46 +103,26 @@ const HomePage = ({
   const dispatch = useDispatch();
   const { isAuthenticated, user, logoutUser } = useAuth();
 
-  const handleSectionClick = (title) => {
+  const handleSectionClick = useCallback((title) => {
     dispatch(setCategory(title));
     navigate("/style");
-  };
+  }, [dispatch, navigate]);
+
+  const handleLoginClick = useCallback(() => {
+    setOpenLogin(true);
+  }, [setOpenLogin]);
+
+  const handleRegisterClick = useCallback(() => {
+    setOpenRegister(true);
+  }, [setOpenRegister]);
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        width: "100vw",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexDirection: "column",
-        paddingTop: "64px",
-        position: "relative",
-        zIndex: 1,
-      }}
-    >
+    <Box sx={containerStyle}>
       {/* Background pattern */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: (theme) =>
-            theme.palette.mode === "dark" ? darkPattern.backgroundImage : lightPattern.backgroundImage,
-          backgroundColor: (theme) =>
-            theme.palette.mode === "dark" ? darkPattern.backgroundColor : lightPattern.backgroundColor,
-          backgroundSize: "20px 20px",
-          opacity: (theme) =>
-            theme.palette.mode === "dark" ? darkPattern.opacity : lightPattern.opacity,
-          zIndex: -1,
-        }}
-      />
+      <Box sx={backgroundStyle} />
 
-      <Grid container spacing={4} direction="column" alignItems="center" justifyContent="center" sx={{ maxWidth: "1500px", padding: 2 }}>
-        <Grid item xs={12} sx={{ textAlign: "center", mb: 4 }}>
+      <Grid container spacing={4} direction="column" alignItems="center" justifyContent="center" sx={gridContainerStyle}>
+        <Grid item xs={12} sx={headerStyle}>
           <Typography variant="h4" gutterBottom>
             Welcome to Learnify – The Ultimate 11+ Mock Exam Experience!
           </Typography>
@@ -81,7 +133,7 @@ const HomePage = ({
 
         {isAuthenticated ? (
           <>
-            <Grid item xs={12} sx={{ textAlign: "center", mb: 4 }}>
+            <Grid item xs={12} sx={headerStyle}>
               <Typography variant="h5">Choose a Section</Typography>
             </Grid>
 
@@ -94,49 +146,19 @@ const HomePage = ({
             </Grid>
           </>
         ) : (
-          <Grid item xs={12} sx={{ textAlign: "center", mb: 4 }}>
+          <Grid item xs={12} sx={headerStyle}>
             <Button
               variant="contained"
-              onClick={() => setOpenLogin(true)}
-              sx={{
-                background: "linear-gradient(135deg, #2563EB 30%, #1D4ED8 90%)",
-                color: "#fff",
-                padding: "12px 24px",
-                fontSize: "16px",
-                borderRadius: "30px",
-                fontWeight: "600",
-                textTransform: "none",
-                boxShadow: "0px 4px 10px rgba(37, 99, 235, 0.4)",
-                transition: "all 0.3s ease-in-out",
-                "&:hover": {
-                  background: "linear-gradient(135deg, #1D4ED8 30%, #2563EB 90%)",
-                  boxShadow: "0px 6px 12px rgba(37, 99, 235, 0.5)",
-                },
-                mx: 1,
-              }}
+              onClick={handleLoginClick}
+              sx={loginButtonStyle}
             >
               Login
             </Button>
 
             <Button
               variant="contained"
-              onClick={() => setOpenRegister(true)} // Changed from setOpenProfile to setOpenRegister
-              sx={{
-                background: "linear-gradient(135deg, #F97316 30%, #EA580C 90%)",
-                color: "#fff",
-                padding: "12px 24px",
-                fontSize: "16px",
-                borderRadius: "30px",
-                fontWeight: "600",
-                textTransform: "none",
-                boxShadow: "0px 4px 10px rgba(249, 115, 22, 0.4)",
-                transition: "all 0.3s ease-in-out",
-                "&:hover": {
-                  background: "linear-gradient(135deg, #EA580C 30%, #F97316 90%)",
-                  boxShadow: "0px 6px 12px rgba(249, 115, 22, 0.5)",
-                },
-                mx: 1,
-              }}
+              onClick={handleRegisterClick}
+              sx={registerButtonStyle}
             >
               Register
             </Button>
@@ -145,6 +167,6 @@ const HomePage = ({
       </Grid>
     </Box>
   );
-};
+});
 
 export default HomePage;
