@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:backend": "VITE_API_URL=https://learnifybackend-rbob.onrender.com/api VITE_BACKEND_URL=https://learnifybackend-rbob.onrender.com vite",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",

@@ -41,8 +41,8 @@ export const setQuizStyle = (style) => ({
 });
 
 // Use environment variables with fallbacks
-export const backendURL = import.meta.env.VITE_BACKEND_URL || "https://learnify-render-backend.onrender.com";
-export const APIURL = import.meta.env.VITE_API_URL || "https://learnify-render-backend.onrender.com/api";
+export const backendURL = import.meta.env.VITE_BACKEND_URL || "https://learnifybackend-rbob.onrender.com";
+export const APIURL = import.meta.env.VITE_API_URL || "https://learnifybackend-rbob.onrender.com/api";
 
 // For debugging during development
 if (import.meta.env.DEV) {
